@@ -2,6 +2,7 @@ import argparse
 
 import cv2
 import dlib
+import face_recognition
 
 
 def show_rects(detector, img, haar):
@@ -15,6 +16,33 @@ def show_rects(detector, img, haar):
             cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 0), 2)
     # print(len(dets))
 
+
+def show_image(detector, haar, image, recognizer):
+    img = cv2.imread(image, 0)
+    show_rects(detector, img, haar)
+    while (True):
+        cv2.imshow('frame', img)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    cv2.destroyAllWindows()
+    return
+
+
+def show_webcam(detector, haar, video, recognizer):
+    cap = cv2.VideoCapture(video if video else 0)
+
+    while (cap.isOpened()):
+        ret, frame = cap.read()
+        img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)[::]
+
+        show_rects(detector, img, haar)
+        print(recognizer.predict(img))
+        cv2.imshow('frame', img)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
 
 def main():
     parser = argparse.ArgumentParser()
@@ -30,31 +58,13 @@ def main():
         detector = cv2.CascadeClassifier(cascade_path)
     else:
         detector = dlib.get_frontal_face_detector()
-    img_path = args.in_image
-    if img_path:
-        img = cv2.imread(img_path, 0)
-        show_rects(detector, img, haar)
-        while (True):
-            cv2.imshow('frame', img)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        cv2.destroyAllWindows()
-        return
 
-    cap = cv2.VideoCapture(args.in_video if args.in_video else 0)
+    recognizer = face_recognition.Recognizer()
+    if args.in_image:
+        show_image(detector, haar, args.in_image, recognizer)
+    else:
+        show_webcam(detector, haar, args.in_video, recognizer)
 
-    while (cap.isOpened()):
-        ret, frame = cap.read()
-        img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)[::]
-
-
-        show_rects(detector, img, haar)
-        cv2.imshow('frame', img)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
