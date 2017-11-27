@@ -5,6 +5,10 @@ import dlib
 
 import face_recognition
 
+def draw_text(img, text, x1, y1, thickness):
+    font_size = 1
+    cv2.putText(img, text, (x1 - thickness, y1 - thickness),
+                cv2.FONT_HERSHEY_SIMPLEX, font_size, (255, 255, 255), thickness // 4, cv2.LINE_AA)
 
 def show_rects_and_names(detector, recognizer, img, img_gray, haar):
     if haar:
@@ -15,9 +19,10 @@ def show_rects_and_names(detector, recognizer, img, img_gray, haar):
             w, h, _ = crop.shape
             if w <= 0 or h <= 0:
                 return
-            person_name = recognizer.predict()
-            print(person_name)
-            cv2.rectangle(img, (x1, y1), (x2, y2), (255, 255, 255), 2)
+            thickness = 2
+            person_name = recognizer.predict(crop)
+            draw_text(img, person_name[0], x1, y1, thickness)
+            cv2.rectangle(img, (x1, y1), (x2, y2), (255, 255, 255), thickness)
     else:
         face_rects = detector(img_gray, 1)
         for (x1, y1, x2, y2) in ((d.left(), d.top(), d.right(), d.bottom()) for d in face_rects):
@@ -26,8 +31,9 @@ def show_rects_and_names(detector, recognizer, img, img_gray, haar):
             if w <= 0 or h <= 0:
                 return
             person_name = recognizer.predict(crop)
-            print(person_name)
-            cv2.rectangle(img, (x1, y1), (x2, y2), (255, 255, 255), 2)
+            thickness = 2
+            draw_text(img, person_name[0], x1, y1, thickness)
+            cv2.rectangle(img, (x1, y1), (x2, y2), (255, 255, 255), thickness)
 
 
 def show_image(detector, haar, img_path, recognizer):
@@ -42,21 +48,30 @@ def show_image(detector, haar, img_path, recognizer):
     return
 
 
-def show_webcam(detector, haar, video, recognizer):
+def show_webcam(detector, haar, video, recognizer, factor):
     cap = cv2.VideoCapture(video if video else 0)
-
+    if video:
+        fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+        out = cv2.VideoWriter('videos/output.avi', fourcc, 20.0, (640, 480), True)
     while (cap.isOpened()):
         ret, img = cap.read()
         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         show_rects_and_names(detector, recognizer, img, img_gray, haar)
-        cv2.namedWindow("output", cv2.WINDOW_AUTOSIZE)
         w, h, _ = img.shape
-        img = cv2.resize(img, (int(1.5*h), int(1.5*w)))
-        cv2.imshow('webcam', img)
+
+        img = cv2.resize(img, (int(factor*h), int(factor*w)))
+        if video:
+            img = cv2.resize(img, (640, 480))
+            out.write(img)
+            pass
+        else:
+            cv2.imshow('webcam', img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     cap.release()
+    if video:
+        out.release()
     cv2.destroyAllWindows()
 
 
@@ -64,6 +79,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--in_video', type=str, help='input video path')
     parser.add_argument('--in_image', type=str, help='input image path')
+    parser.add_argument('--big', help='big_window', action='store_true')
 
     args = parser.parse_args()
 
@@ -78,7 +94,11 @@ def main():
     if args.in_image:
         show_image(detector, haar, args.in_image, recognizer)
     else:
-        show_webcam(detector, haar, args.in_video, recognizer)
+        if args.big:
+            factor = 1.5
+        else:
+            factor = 1.0
+        show_webcam(detector, haar, args.in_video, recognizer, factor)
 
 
 if __name__ == "__main__":

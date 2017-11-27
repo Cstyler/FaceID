@@ -23,9 +23,9 @@ def init_embeddings(faces_folder: str):
     x, y = [], []
     faces_folder = 'data/MyFaces/'
     for person_folder in os.listdir(faces_folder):
+        labels_dict[cur_label] = person_folder
         person_folder = os.path.join(faces_folder, person_folder)
         add_person(x, y, person_folder, cur_label, detector, resize_shape, False)
-        labels_dict[cur_label] = person_folder
         cur_label += 1
     x = embed_imgs(x)
     return x, y, labels_dict
@@ -36,12 +36,15 @@ def embed_imgs(x):
     mean, std = npload['mean'], npload['std']
     scaler = Scaler(mean=mean, std=std)
 
-    model_path = 'data/cnn_model/epoch_232_val_loss1.351451.hdf5'
-    model_emb_path = 'data/emb_model/model_1_epoch_0_test_eer0.114874.hdf5'
+    # model_path = 'data/cnn_model/epoch_232_val_loss1.351451.hdf5'
+    # model_emb_path = 'data/emb_model/model_1_epoch_0_test_eer0.114874.hdf5'
 
     # model_path = 'data/cnn_model/epoch_57_val_loss1.699622.hdf5'
     # model_emb_path = 'data/emb_model/model_2_epoch_25_test_eer0.106689.hdf5'
 
+    model_path = 'data/cnn_model/epoch_29_val_loss1.441430.hdf5'
+    # model_emb_path = 'data/emb_model/model_5_epoch_2_test_eer0.143211.hdf5'
+    model_emb_path = 'data/emb_model/model_6_epoch_6_test_eer_0.135497_test2_err0.254601.hdf5'
 
     # model_emb_path = '../data/Modeltpe2/epoch_0_test_eer0.139840.hdf5'
     # model_emb_path = '../data/Modeltpe3/epoch_12_test_eer0.107399.hdf5'

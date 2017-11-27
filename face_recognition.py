@@ -1,6 +1,5 @@
 import cv2
 import dlib
-import matplotlib.pyplot as plt
 import pickle
 import numpy as np
 
@@ -29,11 +28,15 @@ class Recognizer(object):
         mean, std = npload['mean'], npload['std']
         self.scaler = Scaler(mean=mean, std=std)
 
-        model_path = 'data/cnn_model/epoch_232_val_loss1.351451.hdf5'
-        model_emb_path = 'data/emb_model/model_1_epoch_0_test_eer0.114874.hdf5'
-
+        # model_path = 'data/cnn_model/epoch_232_val_loss1.351451.hdf5'
+        # model_emb_path = 'data/emb_model/model_1_epoch_0_test_eer0.114874.hdf5'
+        #
         # model_path = 'data/cnn_model/epoch_57_val_loss1.699622.hdf5'
         # model_emb_path = 'data/emb_model/model_2_epoch_25_test_eer0.106689.hdf5'
+
+        model_path = 'data/cnn_model/epoch_29_val_loss1.441430.hdf5'
+        # model_emb_path = 'data/emb_model/model_5_epoch_2_test_eer0.143211.hdf5'
+        model_emb_path = 'data/emb_model/model_6_epoch_6_test_eer_0.135497_test2_err0.254601.hdf5'
 
         # model_emb_path = '../data/Modeltpe2/epoch_0_test_eer0.139840.hdf5'
         # model_emb_path = '../data/Modeltpe3/epoch_12_test_eer0.107399.hdf5'
@@ -50,7 +53,7 @@ class Recognizer(object):
         with open('data/labels_dict.pkl', 'rb') as file:
             self.labels_dict = pickle.load(file)
 
-        self.knn = KNeighborsClassifier(n_neighbors=3, metric=metric, n_jobs=1)
+        self.knn = KNeighborsClassifier(n_neighbors=1, metric=metric, n_jobs=1)
         self.knn.fit(self.x, self.y)
 
 
