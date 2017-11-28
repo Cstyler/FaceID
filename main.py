@@ -10,7 +10,8 @@ def draw_text(img, text, x1, y1, thickness):
     cv2.putText(img, text, (x1 - thickness, y1 - thickness),
                 cv2.FONT_HERSHEY_SIMPLEX, font_size, (255, 255, 255), thickness // 4, cv2.LINE_AA)
 
-def show_rects_and_names(detector, recognizer, img, img_gray, haar):
+def show_rects_and_names(detector, recognizer: face_recognition.Recognizer, img, haar: bool):
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     if haar:
         face_rects = detector.detectMultiScale(img_gray, 1.2, 1, minSize=(10, 10))
         for (x1, y1, w, h) in face_rects:
@@ -25,12 +26,12 @@ def show_rects_and_names(detector, recognizer, img, img_gray, haar):
             cv2.rectangle(img, (x1, y1), (x2, y2), (255, 255, 255), thickness)
     else:
         face_rects = detector(img_gray, 1)
-        for (x1, y1, x2, y2) in ((d.left(), d.top(), d.right(), d.bottom()) for d in face_rects):
-            crop = img[y1:y2, x1:x2]
-            w, h, _ = crop.shape
+        for d in face_rects:
+            x1, y1, x2, y2 = d.left(), d.top(), d.right(), d.bottom()
+            w, h = y2-y1, x2-x1
             if w <= 0 or h <= 0:
                 return
-            person_name = recognizer.predict(crop)
+            person_name = recognizer.predict(img, img_gray, d)
             thickness = 2
             draw_text(img, person_name[0], x1, y1, thickness)
             cv2.rectangle(img, (x1, y1), (x2, y2), (255, 255, 255), thickness)
@@ -38,8 +39,7 @@ def show_rects_and_names(detector, recognizer, img, img_gray, haar):
 
 def show_image(detector, haar, img_path, recognizer):
     img = cv2.imread(img_path)
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    show_rects_and_names(detector, recognizer, img, img_gray, haar)
+    show_rects_and_names(detector, recognizer, img, haar)
     while (True):
         cv2.imshow('image', img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -55,8 +55,7 @@ def show_webcam(detector, haar, video, recognizer, factor):
         out = cv2.VideoWriter('videos/output.avi', fourcc, 20.0, (640, 480), True)
     while (cap.isOpened()):
         ret, img = cap.read()
-        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        show_rects_and_names(detector, recognizer, img, img_gray, haar)
+        show_rects_and_names(detector, recognizer, img, haar)
         w, h, _ = img.shape
 
         img = cv2.resize(img, (int(factor*h), int(factor*w)))
