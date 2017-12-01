@@ -8,12 +8,14 @@ import face_recognition
 
 def draw_text(img, text, x1, y1, thickness):
     font_size = 1
+    white_color = (255, 255, 255)
     cv2.putText(img, text, (x1 - thickness, y1 - thickness),
-                cv2.FONT_HERSHEY_SIMPLEX, font_size, (255, 255, 255), thickness // 4, cv2.LINE_AA)
+                cv2.FONT_HERSHEY_SIMPLEX, font_size, white_color, thickness // 4, cv2.LINE_AA)
 
 
 def show_rects_and_names(detector, recognizer: face_recognition.Recognizer, img, haar: bool):
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    thickness = 2
     if haar:
         face_rects = detector.detectMultiScale(img_gray, 1.2, 1, minSize=(10, 10))
         for (x1, y1, w, h) in face_rects:
@@ -22,8 +24,7 @@ def show_rects_and_names(detector, recognizer: face_recognition.Recognizer, img,
             w, h, _ = crop.shape
             if w <= 0 or h <= 0:
                 return
-            thickness = 2
-            person_name = recognizer.predict(crop)
+            person_name = recognizer.predict(img, img_gray, crop)
             draw_text(img, person_name[0], x1, y1, thickness)
             cv2.rectangle(img, (x1, y1), (x2, y2), (255, 255, 255), thickness)
     else:
@@ -33,9 +34,8 @@ def show_rects_and_names(detector, recognizer: face_recognition.Recognizer, img,
             w, h = y2 - y1, x2 - x1
             if w <= 0 or h <= 0:
                 return
-            person_name = recognizer.predict(img, img_gray, d)
-            thickness = 2
-            draw_text(img, person_name[0], x1, y1, thickness)
+            person_name, neighbors = recognizer.predict(img, img_gray, d)
+            draw_text(img, person_name, x1, y1, thickness)
             cv2.rectangle(img, (x1, y1), (x2, y2), (255, 255, 255), thickness)
 
 
@@ -54,7 +54,8 @@ def show_webcam(detector, haar, video, recognizer, factor):
     cap = cv2.VideoCapture(video if video else 0)
     if video:
         fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-        out = cv2.VideoWriter(f'{video}_detection.avi', fourcc, 20.0, (640, 480), True)
+        output_shape = (640, 480)
+        out = cv2.VideoWriter(f'{video}_detection.avi', fourcc, 20.0, output_shape, True)
     while (cap.isOpened()):
         ret, img = cap.read()
         show_rects_and_names(detector, recognizer, img, haar)

@@ -49,12 +49,12 @@ def align_img(img, img_gray, rect, shape_predictor, template_landmarks, landmark
     B = np.hstack((template_landmarks, ones))
     T = np.linalg.solve(A, B).T  # (T@A.T).T = B
 
-    wrapped = tr.warp(img, tr.AffineTransform(T).inverse,
+    warped = tr.warp(img, tr.AffineTransform(T).inverse,
                       output_shape=output_shape, preserve_range=False)
-    wrapped = np.uint8(wrapped * 255)
+    warped = np.uint8(warped * 255)
     #     plt.imshow(cv2.cvtColor(wrapped, cv2.COLOR_BGR2RGB))
     #     plt.show()
-    return wrapped
+    return warped
 
 
 def get_template_landmarks(indices, resize_factor):
