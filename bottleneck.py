@@ -1,6 +1,7 @@
 import numpy as np
 import keras.backend as K
 
+
 class Bottleneck:
     def __init__(self, model):
         self.fn = K.function([model.layers[0].input, K.learning_phase()], [

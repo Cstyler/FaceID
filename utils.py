@@ -18,8 +18,6 @@ class Scaler(object):
         return (x - self.mean) / self.std
 
 
-
-
 def transpose_matrix(x):
     return np.transpose(x, (0, 3, 1, 2))
 
@@ -40,6 +38,7 @@ def align_and_crop_img(img, output_shape, detector, shape_predictor, template_la
     d = dets[0]
     aligned_img = align_img(img, img_gray, d, shape_predictor, template_landmarks, landmarks_indices, output_shape)
     return aligned_img
+
 
 def align_img(img, img_gray, rect, shape_predictor, template_landmarks, landmark_indices, output_shape):
     pred_landmarks = points_to_np(shape_predictor(img_gray, rect))

@@ -28,7 +28,6 @@ def init_embeddings(faces_folder: str):
     cur_label = 0
     labels_dict = dict()
     x, y = [], []
-    faces_folder = 'data/MyFaces/'
     debug = False
     for person_folder in os.listdir(faces_folder):
         labels_dict[cur_label] = person_folder
@@ -74,6 +73,12 @@ def embed_imgs(x):
     x = scaler.transform(x)
     x = bottleneck.predict(transpose_matrix(x))
     x = model_emb.predict(x)
+
+    # model_emb_path = 'data/epoch_17_test_eer0.191621.hdf5'
+
+    # model_emb = keras.models.load_model(model_emb_path)
+    # x = scaler.transform(x)
+    # x = model_emb.predict(transpose_matrix(x))
     return x
 
 

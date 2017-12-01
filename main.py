@@ -5,10 +5,12 @@ import dlib
 
 import face_recognition
 
+
 def draw_text(img, text, x1, y1, thickness):
     font_size = 1
     cv2.putText(img, text, (x1 - thickness, y1 - thickness),
                 cv2.FONT_HERSHEY_SIMPLEX, font_size, (255, 255, 255), thickness // 4, cv2.LINE_AA)
+
 
 def show_rects_and_names(detector, recognizer: face_recognition.Recognizer, img, haar: bool):
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -28,7 +30,7 @@ def show_rects_and_names(detector, recognizer: face_recognition.Recognizer, img,
         face_rects = detector(img_gray, 1)
         for d in face_rects:
             x1, y1, x2, y2 = d.left(), d.top(), d.right(), d.bottom()
-            w, h = y2-y1, x2-x1
+            w, h = y2 - y1, x2 - x1
             if w <= 0 or h <= 0:
                 return
             person_name = recognizer.predict(img, img_gray, d)
@@ -52,13 +54,13 @@ def show_webcam(detector, haar, video, recognizer, factor):
     cap = cv2.VideoCapture(video if video else 0)
     if video:
         fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-        out = cv2.VideoWriter('videos/output.avi', fourcc, 20.0, (640, 480), True)
+        out = cv2.VideoWriter(f'{video}_detection.avi', fourcc, 20.0, (640, 480), True)
     while (cap.isOpened()):
         ret, img = cap.read()
         show_rects_and_names(detector, recognizer, img, haar)
         w, h, _ = img.shape
 
-        img = cv2.resize(img, (int(factor*h), int(factor*w)))
+        img = cv2.resize(img, (int(factor * h), int(factor * w)))
         if video:
             img = cv2.resize(img, (640, 480))
             out.write(img)

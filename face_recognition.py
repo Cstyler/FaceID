@@ -5,9 +5,10 @@ import numpy as np
 np.random.seed(42)
 
 import os
+
 os.environ['KERAS_BACKEND'] = "theano"
 os.environ['THEANO_FLAGS'] = "device=cpu, openmp=true"
-os.environ['OMP_NUM_THREADS'] = "1"
+os.environ['OMP_NUM_THREADS'] = "2"
 import keras
 from sklearn.neighbors import KNeighborsClassifier
 from utils import Scaler, transpose_matrix
@@ -31,6 +32,8 @@ class Recognizer(object):
         mean, std = npload['mean'], npload['std']
         self.scaler = Scaler(mean=mean, std=std)
 
+        # model_emb_path = 'data/epoch_17_test_eer0.191621.hdf5'
+
         model_path = 'data/cnn_model/epoch_66_val_loss1.206078.hdf5'
         model_emb_path = 'data/emb_model/model_10_epoch_10_test_eer0.169731_test2_err0.204908.hdf5'
 
@@ -38,7 +41,6 @@ class Recognizer(object):
         # model_emb_path = 'data/emb_model/model_8_epoch_15_test_eer0.127431_test2_err0.218662.hdf5'
         # model_emb_path = 'data/emb_model/model_8_epoch_1_test_eer0.133520_test2_err0.216839.hdf5'
         # model_emb_path = 'data/emb_model/model_9_epoch_5_test_eer0.127574_test2_err0.229637.hdf5'
-
 
         # model_path = 'data/cnn_model/epoch_232_val_loss1.351451.hdf5'
         # model_emb_path = 'data/emb_model/model_1_epoch_0_test_eer0.114874.hdf5'
@@ -77,14 +79,19 @@ class Recognizer(object):
         img = align_img(img, img_gray, rect, self.shape_predictor, self.template_landmarks,
                         self.eye_and_mouth_indices, self.resize_shape)
         batch_x = [img]
+        import matplotlib.pyplot as plt
+        # plt.imshow(img)
+        # plt.show()
         batch_x = self.scaler.transform(batch_x)
         batch_x = self.bottleneck.predict(transpose_matrix(batch_x))
         batch_x = self.model_emb.predict(batch_x)
 
+        # batch_x = self.model_emb.predict(transpose_matrix(batch_x))
+
         pred_labels = self.knn.predict(batch_x)
         neighbors = self.knn.kneighbors(batch_x)
         label_neighbors = [self.labels_dict[self.y[ind]] for ind in neighbors[1][0]]
-        # print(label_neighbors, neighbors[0])
+        print(label_neighbors, neighbors[0])
 
         # label_ind = max(self.iterate_similarities(batch_x[0]), key=lambda x: x[0])[1]
         # label = self.y[label_ind]
